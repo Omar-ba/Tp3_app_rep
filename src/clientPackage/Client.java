@@ -2,37 +2,42 @@ package clientPackage;
 
 import java.io.*;
 import java.net.*;
+import java.util.Scanner;
+
+import ope.Operation;
 
 public class Client {
     public static void main(String[] args) {
-        String host = "127.0.0.1"; // localhost
+        String host = "localhost";
         int port = 1900;
 
-        try (Socket socket = new Socket(host, port)) {
-            BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-            PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
-            BufferedReader clavier = new BufferedReader(new InputStreamReader(System.in));
+        try (Socket socket = new Socket(host, port);
+             ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
+             ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
+             Scanner sc = new Scanner(System.in)) {
 
-            System.out.println("Connecté au serveur !");
-            System.out.println(in.readLine()); // Message de bienvenue
+            System.out.println(" Connecté au serveur " + host + ":" + port);
 
-            String message;
             while (true) {
-                System.out.print("Vous : ");
-                message = clavier.readLine();
-                out.println(message);
+                System.out.print("Entrez le premier nombre : ");
+                double op1 = sc.nextDouble();
 
-                if (message.equalsIgnoreCase("stop")) break;
+                System.out.print("Entrez l’opérateur (+, -, *, /) : ");
+                char operateur = sc.next().charAt(0);
 
-                String reponse = in.readLine();
-                System.out.println(reponse);
+                System.out.print("Entrez le deuxième nombre : ");
+                double op2 = sc.nextDouble();
+
+                Operation operation = new Operation(op1, op2, operateur);
+                out.writeObject(operation);
+
+                Operation resultat = (Operation) in.readObject();
+                System.out.println(" Résultat : " + resultat.getResultat());
             }
 
-            socket.close();
-            System.out.println("Déconnexion du serveur.");
-
-        } catch (IOException e) {
-            System.out.println("Erreur de connexion au serveur : " + e.getMessage());
+        } catch (Exception e) {
+            System.out.println(" Erreur client : " + e.getMessage());
         }
     }
 }
+
