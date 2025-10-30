@@ -3,7 +3,6 @@ package clientPackage;
 import java.io.*;
 import java.net.*;
 import java.util.Scanner;
-
 import ope.Operation;
 
 public class Client {
@@ -11,12 +10,18 @@ public class Client {
         String host = "localhost";
         int port = 1900;
 
-        try (Socket socket = new Socket(host, port);
-             ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
-             ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
-             Scanner sc = new Scanner(System.in)) {
+        try (Socket socket = new Socket(host, port)) {
 
-            System.out.println(" Connecté au serveur " + host + ":" + port);
+            // Créer les flux correctement
+            ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
+            out.flush();
+            ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
+
+            // Lire le numéro du client envoyé par le serveur
+            int clientId = in.readInt();
+            System.out.println(" Vous êtes connecté en tant que client n°" + clientId);
+
+            Scanner sc = new Scanner(System.in);
 
             while (true) {
                 System.out.print("Entrez le premier nombre : ");
@@ -30,14 +35,14 @@ public class Client {
 
                 Operation operation = new Operation(op1, op2, operateur);
                 out.writeObject(operation);
+                out.flush();
 
                 Operation resultat = (Operation) in.readObject();
-                System.out.println(" Résultat : " + resultat.getResultat());
+                System.out.println("Résultat : " + resultat.getResultat());
             }
 
         } catch (Exception e) {
-            System.out.println(" Erreur client : " + e.getMessage());
+            System.out.println("Erreur client : " + e.getMessage());
         }
     }
 }
-
